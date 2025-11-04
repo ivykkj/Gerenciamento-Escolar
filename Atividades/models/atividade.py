@@ -10,7 +10,7 @@ class Atividade(db.Model):
     nome_atividade = db.Column(db.String(50), nullable=False)
     descricao = db.Column(db.String(100), nullable=False)
     peso_porcento = db.Column(db.Integer, nullable=False)
-    data_entrega = db.Column(db.Datw, nullable=False)
+    data_entrega = db.Column(db.Date, nullable=False)
     turma_id = db.Column(db.Integer, nullable=False)
     professor_id = db.Column(db.Integer, nullable=False)
 

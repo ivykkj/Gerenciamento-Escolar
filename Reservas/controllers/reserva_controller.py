@@ -6,7 +6,7 @@ import requests
 
 #TO DO: comunicação com api de Gerenciamento e a validação síncrona no POST e PUT
 
-reserva_bp = Blueprint('aluno_bp', __name__)
+reserva_bp = Blueprint('reserva_bp', __name__)
 
 @reserva_bp.route('/reservas', methods=['POST'])
 def create_reserva():
@@ -59,7 +59,7 @@ def update_reserva(id):
         reserva.lab = data.get('lab', reserva.lab)
         
         if 'data_reserva' in data:
-            reserva.data_reserva = datetime.strptime(data['data'],'%d/%m/%Y').date()
+            reserva.data_reserva = datetime.strptime(data['data_reserva'],'%d/%m/%Y').date()
 
     except ValueError:
         return jsonify({"erro": "Formato de data inválido. Use 'dd/mm/yyyy'."}), 400
