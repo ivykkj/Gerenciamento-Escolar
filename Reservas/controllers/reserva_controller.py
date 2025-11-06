@@ -4,7 +4,7 @@ from models import db
 from datetime import datetime
 import requests
 
-#TO DO: comunicação com api de Gerenciamento e a validação síncrona no POST e PUT
+GERENCIAMENTO_API_URL = "http://gerenciamento-svc:8080/api"
 
 reserva_bp = Blueprint('reserva_bp', __name__)
 
@@ -17,6 +17,17 @@ def create_reserva():
     
     try:
         turma_id = data['turma_id']
+
+        try:
+            response = requests.get(f"{GERENCIAMENTO_API_URL}/turmas/{turma_id}")
+
+            if response.status_code == 404:
+                return jsonify({"erro": f"Turma com id {turma_id} não encontrado no serviço de Gerenciamento."}), 404
+
+            response.raise_for_status()
+
+        except requests.exceptions.ConnectionError:
+            return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
 
         nova_reserva = Reserva(
             num_sala = data['num_sala'],
@@ -55,6 +66,23 @@ def update_reserva(id):
         return jsonify({"erro": "Corpo da requisição não pode ser vazio."}), 400
 
     try:
+        if 'turma_id' in data:
+            turma_id_nova = data['turma_id']
+            
+            if turma_id_nova != reserva.turma_id:
+                try:
+                    response = requests.get(f"{GERENCIAMENTO_API_URL}/turmas/{turma_id_nova}")
+
+                    if response.status_code == 404:
+                        return jsonify({"erro": f"Nova turma com id {turma_id_nova} não encontrada no Gerenciamento."}), 404
+
+                    response.raise_for_status()
+                    
+                    reserva.turma_id = turma_id_nova
+
+                except requests.exceptions.ConnectionError:
+                    return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
+                
         reserva.num_sala = data.get('num_sala', reserva.num_sala)
         reserva.lab = data.get('lab', reserva.lab)
         
@@ -67,7 +95,7 @@ def update_reserva(id):
         return jsonify({"erro": "Ocorreu um erro ao atualizar os dados."}), 500
 
     db.session.commit()
-    return jsonify(reserva.to_dict()),201
+    return jsonify(reserva.to_dict()),200
 
 @reserva_bp.route('/reservas/<int:id>', methods=['DELETE'])
 def delete_reserva(id):
