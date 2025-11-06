@@ -4,7 +4,7 @@ from models import db
 from datetime import datetime
 import requests
 
-#TO DO: comunicação com api de Gerenciamento e a validação síncrona no POST e PUT
+GERENCIAMENTO_API_URL = "http://gerenciamento-svc:8080/api"
 
 atividade_bp = Blueprint('atividade_bp', __name__)
 
@@ -18,6 +18,28 @@ def create_atividade():
     try:
         turma_id = data['turma_id']
         professor_id = data['professor_id']
+
+        try:
+            response = requests.get(f"{GERENCIAMENTO_API_URL}/turmas/{turma_id}")
+
+            if response.status_code == 404:
+                return jsonify({"erro": f"Turma com id {turma_id} não encontrado no serviço de Gerenciamento."}), 404
+
+            response.raise_for_status()
+
+        except requests.exceptions.ConnectionError:
+            return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
+
+        try:
+            response = requests.get(f"{GERENCIAMENTO_API_URL}/professores/{professor_id}")
+
+            if response.status_code == 404:
+                return jsonify({"erro": f"Professor com id {professor_id} não encontrado no serviço de Gerenciamento."}), 404
+
+            response.raise_for_status()
+
+        except requests.exceptions.ConnectionError:
+            return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503        
 
         nova_atividade = Atividade(
             nome_atividade = data['nome_atividade'],
@@ -58,6 +80,40 @@ def update_atividade(id):
         return jsonify({"erro": "Corpo da requisição não pode ser vazio."}), 400
 
     try:
+        if 'turma_id' in data:
+            turma_id_nova = data['turma_id']
+            
+            if turma_id_nova != atividade.turma_id:
+                try:
+                    response = requests.get(f"{GERENCIAMENTO_API_URL}/turmas/{turma_id_nova}")
+
+                    if response.status_code == 404:
+                        return jsonify({"erro": f"Nova turma com id {turma_id_nova} não encontrada no Gerenciamento."}), 404
+
+                    response.raise_for_status()
+                    
+                    atividade.turma_id = turma_id_nova
+
+                except requests.exceptions.ConnectionError:
+                    return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
+                
+        if 'professor_id' in data:
+            professor_id_novo = data['professor_id']
+            
+            if professor_id_novo != atividade.professor_id:
+                try:
+                    response = requests.get(f"{GERENCIAMENTO_API_URL}/professores/{professor_id_novo}")
+
+                    if response.status_code == 404:
+                        return jsonify({"erro": f"Novo professor(a) com id {professor_id_novo} não encontrado(a) no Gerenciamento."}), 404
+
+                    response.raise_for_status()
+                    
+                    atividade.professor_id = professor_id_novo
+
+                except requests.exceptions.ConnectionError:
+                    return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
+                
         atividade.nome_atividade = data.get('nome_atividade', atividade.nome_atividade)
         atividade.descricao = data.get('descricao', atividade.descricao)
         atividade.peso_porcento = data.get('peso_porcento', atividade.peso_porcento)
@@ -71,7 +127,7 @@ def update_atividade(id):
         return jsonify({"erro": "Ocorreu um erro ao atualizar os dados."}), 500
 
     db.session.commit()
-    return jsonify(atividade.to_dict()),201
+    return jsonify(atividade.to_dict()),200
 
 @atividade_bp.route('/atividades/<int:id>', methods=['DELETE'])
 def delete_atividade(id):

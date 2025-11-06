@@ -4,7 +4,7 @@ from models.atividade import Atividade
 from models import db
 import requests
 
-#TO DO: comunicação com api de Gerenciamento e a validação síncrona no POST e PUT
+GERENCIAMENTO_API_URL = "http://gerenciamento-svc:8080/api"
 
 nota_bp = Blueprint('nota_bp', __name__)
 
@@ -18,11 +18,22 @@ def create_nota():
     try:
         aluno_id = data['aluno_id']
 
+        try:
+            response = requests.get(f"{GERENCIAMENTO_API_URL}/alunos/{aluno_id}")
+
+            if response.status_code == 404:
+                return jsonify({"erro": f"Aluno(a) com id {aluno_id} não encontrado no serviço de Gerenciamento."}), 404
+
+            response.raise_for_status()
+
+        except requests.exceptions.ConnectionError:
+            return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
+
         if not Atividade.query.get(data['atividade_id']):
             return jsonify({'erro': 'Atividade não encontrada'}), 404
         
         nova_nota = Nota(
-            nota = data['data'],
+            nota_atividade = data['nota_atividade'],
             aluno_id = data['aluno_id'],
             atividade_id = data['atividade_id']
         )
@@ -55,13 +66,30 @@ def upsdate_nota(id):
         return jsonify({"erro": "Corpo da requisição não pode ser vazio."}), 400
 
     try:
-        nota.nota = data.get('nota', nota.nota)
+        if 'aluno_id' in data:
+            aluno_id_novo = data['aluno_id']
+            
+            if aluno_id_novo != atividade.aluno_id:
+                try:
+                    response = requests.get(f"{GERENCIAMENTO_API_URL}/alunos/{aluno_id_novo}")
 
+                    if response.status_code == 404:
+                        return jsonify({"erro": f"Novo(a) aluno(a) com id {aluno_id_novo} não encontrada no Gerenciamento."}), 404
+
+                    response.raise_for_status()
+                    
+                    atividade.aluno_id = aluno_id_novo
+
+                except requests.exceptions.ConnectionError:
+                    return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
+        
         if 'atividade_id' in data:
             atividade = Atividade.query.get(data['atividade_id'])
             if not atividade:
                 return jsonify({'message': 'Nova atividade não encontrada'}), 400
             nota.atividade_id = data['atividade_id']
+
+        nota.nota_atividade = data.get('nota_atividade', nota.nota_atividade)
 
     except Exception as e:
         return jsonify({"erro": "Ocorreu um erro ao atualizar os dados."}), 500
