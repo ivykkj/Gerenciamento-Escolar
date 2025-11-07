@@ -37,7 +37,7 @@ def create_reserva():
         )
 
     except KeyError as e:
-        return jsonify({"erro": f"O campo '{e.argd[0]}' é obrigatório."}),400
+        return jsonify({"erro": f"O campo '{e.args[0]}' é obrigatório."}),400
     except ValueError:
         return jsonify({"erro": "Formato de data inválido. Use 'dd/mm/yyyy'."}),400
     except Exception as e:

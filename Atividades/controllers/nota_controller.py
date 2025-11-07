@@ -39,7 +39,7 @@ def create_nota():
         )
 
     except KeyError as e:
-        return jsonify({"erro": f"O campo '{e.argd[0]}' é obrigatório."}),400
+        return jsonify({"erro": f"O campo '{e.args[0]}' é obrigatório."}),400
     except Exception as e:
         return jsonify({"erro": f"Ocorreu um erro inesperado: {str(e)}"}),500
     

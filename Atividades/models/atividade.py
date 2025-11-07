@@ -6,7 +6,7 @@ class Atividade(db.Model):
 
     __tablename__ = "atividades"
 
-    id = db.Column(db.integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     nome_atividade = db.Column(db.String(50), nullable=False)
     descricao = db.Column(db.String(100), nullable=False)
     peso_porcento = db.Column(db.Integer, nullable=False)
