@@ -1,0 +1,266 @@
+swagger: "2.0"
+info:
+  title: Atividades e Notas API
+  description: API para gerenciamento de Atividades e Notas dos alunos.
+  version: "1.0.0"
+basePath: /api
+
+tags:
+  - name: Atividades
+    description: Operações relacionadas à entidade Atividades
+  - name: Notas
+    description: Operações relacionadas à entidade Notas
+
+definitions:
+  Atividade:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      nome_atividade:
+        type: string
+        example: "Entrega AP1 - Microsserviços"
+      descricao:
+        type: string
+        example: "Construção de uma API com Flask e Docker"
+      peso_porcento:
+        type: integer
+        example: 20
+      data_entrega:
+        type: string
+        format: date
+        example: "30/10/2025"
+      turma_id:
+        type: integer
+        example: 1
+      professor_id:
+        type: integer
+        example: 1
+  AtividadeInput:
+    type: object
+    required: [nome_atividade, descricao, peso_porcento, data_entrega, turma_id, professor_id]
+    properties:
+      nome_atividade:
+        type: string
+        example: "Entrega AP1 - Microsserviços"
+      descricao:
+        type: string
+        example: "Construção de uma API com Flask e Docker"
+      peso_porcento:
+        type: integer
+        example: 20
+      data_entrega:
+        type: string
+        format: date
+        example: "30/10/2025"
+      turma_id:
+        type: integer
+        example: 1
+      professor_id:
+        type: integer
+        example: 1
+
+  Nota:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      nota_atividade:
+        type: number
+        format: float
+        example: 9.5
+      aluno_id:
+        type: integer
+        example: 1
+      atividade_id:
+        type: integer
+        example: 1
+  NotaInput:
+    type: object
+    required: [nota_atividade, aluno_id, atividade_id]
+    properties:
+      nota_atividade:
+        type: number
+        format: float
+        example: 9.5
+      aluno_id:
+        type: integer
+        example: 1
+      atividade_id:
+        type: integer
+        example: 1
+
+paths:
+  /atividades:
+    get:
+      tags: [Atividades]
+      summary: Lista todas as atividades
+      responses:
+        '200':
+          description: Sucesso - Lista de atividades.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Atividade'
+    post:
+      tags: [Atividades]
+      summary: Cria uma nova atividade
+      description: Cadastra uma atividade, validando Turma e Professor no serviço de Gerenciamento.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AtividadeInput'
+      responses:
+        '201':
+          description: Atividade criada com sucesso.
+          schema:
+            $ref: '#/definitions/Atividade'
+        '400':
+          description: Erro de validação (campos faltando ou formato de data).
+        '404':
+          description: Turma ou Professor não encontrado no serviço de Gerenciamento.
+        '503':
+          description: Não foi possível conectar ao serviço de Gerenciamento.
+
+  /atividades/{id}:
+    get:
+      tags: [Atividades]
+      summary: Busca uma atividade por ID
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: Sucesso - Dados da atividade.
+          schema:
+            $ref: '#/definitions/Atividade'
+        '404':
+          description: Atividade não encontrada.
+    put:
+      tags: [Atividades]
+      summary: Atualiza uma atividade existente
+      description: Atualiza uma atividade, validando Turma e Professor se os IDs forem alterados.
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AtividadeInput'
+      responses:
+        '200':
+          description: Atividade atualizada com sucesso.
+          schema:
+            $ref: '#/definitions/Atividade'
+        '404':
+          description: Atividade não encontrada (neste serviço) ou nova Turma/Professor não encontrado (no Gerenciamento).
+        '503':
+          description: Não foi possível conectar ao serviço de Gerenciamento.
+    delete:
+      tags: [Atividades]
+      summary: Deleta uma atividade
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '204':
+          description: Atividade deletada com sucesso.
+        '404':
+          description: Atividade não encontrada.
+
+  /notas:
+    get:
+      tags: [Notas]
+      summary: Lista todas as notas
+      responses:
+        '200':
+          description: Sucesso - Lista de notas.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Nota'
+    post:
+      tags: [Notas]
+      summary: Lança uma nova nota
+      description: Lança uma nota para um aluno em uma atividade, validando o Aluno no Gerenciamento.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/NotaInput'
+      responses:
+        '201':
+          description: Nota lançada com sucesso.
+          schema:
+            $ref: '#/definitions/Nota'
+        '400':
+          description: Erro de validação (campos faltando).
+        '404':
+          description: Aluno (no Gerenciamento) ou Atividade (neste serviço) não encontrado.
+        '503':
+          description: Não foi possível conectar ao serviço de Gerenciamento.
+
+  /notas/{id}:
+    get:
+      tags: [Notas]
+      summary: Busca uma nota por ID
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: Sucesso - Dados da nota.
+          schema:
+            $ref: '#/definitions/Nota'
+        '404':
+          description: Nota não encontrada.
+    put:
+      tags: [Notas]
+      summary: Atualiza uma nota existente
+      description: Atualiza uma nota, validando o Aluno se o ID for alterado.
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/NotaInput'
+      responses:
+        '200':
+          description: Nota atualizada com sucesso.
+          schema:
+            $ref: '#/definitions/Nota'
+        '404':
+          description: Nota (neste serviço), Aluno (no Gerenciamento) ou Atividade (neste serviço) não encontrado.
+        '503':
+          description: Não foi possível conectar ao serviço de Gerenciamento.
+    delete:
+      tags: [Notas]
+      summary: Deleta uma nota
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '204':
+          description: Nota deletada com sucesso.
+        '404':
+          description: Nota não encontrada.

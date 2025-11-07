@@ -1,0 +1,139 @@
+swagger: "2.0"
+info:
+  title: Reservas API
+  description: API para gerenciamento de Reservas de Sala.
+  version: "1.0.0"
+basePath: /api
+
+tags:
+  - name: Reservas
+    description: Operações relacionadas à entidade Reservas
+
+definitions:
+  Reserva:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      num_sala:
+        type: integer
+        example: 401
+      lab:
+        type: boolean
+        example: true
+      data_reserva:
+        type: string
+        format: date
+        example: "25/10/2025"
+      turma_id:
+        type: integer
+        example: 1
+
+  ReservaInput:
+    type: object
+    required: [num_sala, lab, data_reserva, turma_id]
+    properties:
+      num_sala:
+        type: integer
+        example: 401
+      lab:
+        type: boolean
+        example: true
+      data_reserva:
+        type: string
+        format: date
+        example: "25/10/2025"
+      turma_id:
+        type: integer
+        example: 1
+
+paths:
+  /reservas:
+    get:
+      tags: [Reservas]
+      summary: Lista todas as reservas
+      description: Retorna uma lista com todas as reservas cadastradas.
+      responses:
+        '200':
+          description: Sucesso - Lista de reservas retornada.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Reserva'
+    post:
+      tags: [Reservas]
+      summary: Cria uma nova reserva
+      description: Cadastra uma nova reserva, validando a existência da Turma no serviço de Gerenciamento.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ReservaInput'
+      responses:
+        '201':
+          description: Reserva criada com sucesso.
+          schema:
+            $ref: '#/definitions/Reserva'
+        '400':
+          description: Erro de validação (campos faltando ou formato de data).
+        '404':
+          description: Turma com o ID fornecido não encontrada no serviço de Gerenciamento.
+        '503':
+          description: Não foi possível conectar ao serviço de Gerenciamento.
+
+  /reservas/{id}:
+    get:
+      tags: [Reservas]
+      summary: Busca uma reserva por ID
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: Sucesso - Dados da reserva.
+          schema:
+            $ref: '#/definitions/Reserva'
+        '404':
+          description: Reserva não encontrada.
+    put:
+      tags: [Reservas]
+      summary: Atualiza uma reserva existente
+      description: Atualiza uma reserva, validando a Turma no serviço de Gerenciamento se o turma_id for alterado.
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ReservaInput'
+      responses:
+        '200':
+          description: Reserva atualizada com sucesso.
+          schema:
+            $ref: '#/definitions/Reserva'
+        '400':
+          description: Erro de validação (formato de data).
+        '404':
+          description: Reserva não encontrada (neste serviço) ou nova Turma não encontrada (no Gerenciamento).
+        '503':
+          description: Não foi possível conectar ao serviço de Gerenciamento.
+    delete:
+      tags: [Reservas]
+      summary: Deleta uma reserva
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '204':
+          description: Reserva deletada com sucesso (sem conteúdo no corpo da resposta).
+        '404':
+          description: Reserva não encontrada.

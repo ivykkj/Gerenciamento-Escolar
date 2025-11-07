@@ -2,34 +2,34 @@ version: '3.8'
 
 services:
   gerenciamento:
-    build: ./gerenciamento        
-    container_name: gerenciamento-svc
+    build: ./Gerenciamento        
+    container_name: Gerenciamento-svc
     ports:
       - "8081:8080"               
     volumes:
-      - ./gerenciamento/database.db:/app/database.db  
+      - ./Gerenciamento/database.db:/app/database.db  
     networks:
       - escola-net
 
   atividades:
-    build: ./atividades
-    container_name: atividades-svc
+    build: ./Atividades
+    container_name: Atividades-svc
     ports:
       - "8082:8080"               
     volumes:
-      - ./atividades/database.db:/app/database.db
+      - ./Atividades/database.db:/app/database.db
     networks:
       - escola-net
     depends_on:
       - gerenciamento
 
   reservas:
-    build: ./reservas
-    container_name: reservas-svc
+    build: ./Reservas
+    container_name: Reservas-svc
     ports:
       - "8083:8080"               
     volumes:
-      - ./reservas/database.db:/app/database.db
+      - ./Reservas/database.db:/app/database.db
     networks:
       - escola-net
     depends_on:                   
