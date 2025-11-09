@@ -49,8 +49,8 @@ def create_nota():
 
 @nota_bp.route('/notas', methods=['GET'])
 def get_notas():
-    nota = Nota.query.all()
-    return jsonify(nota.to_dict())
+    notas = Nota.query.all()
+    return jsonify([n.to_dict() for n in notas])
 
 @nota_bp.route('/notas/<int:id>', methods=['GET'])
 def get_nota(id):
@@ -58,7 +58,7 @@ def get_nota(id):
     return jsonify(nota.to_dict())
 
 @nota_bp.route('/notas/<int:id>', methods=['PUT'])
-def upsdate_nota(id):
+def update_nota(id):
     nota = Nota.query.get_or_404(id)
     data = request.get_json()
 
@@ -69,7 +69,7 @@ def upsdate_nota(id):
         if 'aluno_id' in data:
             aluno_id_novo = data['aluno_id']
             
-            if aluno_id_novo != atividade.aluno_id:
+            if aluno_id_novo != nota.aluno_id:
                 try:
                     response = requests.get(f"{GERENCIAMENTO_API_URL}/alunos/{aluno_id_novo}")
 
@@ -78,7 +78,7 @@ def upsdate_nota(id):
 
                     response.raise_for_status()
                     
-                    atividade.aluno_id = aluno_id_novo
+                    nota.aluno_id = aluno_id_novo
 
                 except requests.exceptions.ConnectionError:
                     return jsonify({"erro": "Não foi possível conectar ao serviço de Gerenciamento"}), 503
