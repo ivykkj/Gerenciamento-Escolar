@@ -17,6 +17,6 @@ class Reserva(db.Model):
             'id':self.id,
             'num_sala':self.num_sala,
             'lab':self.lab,
-            'data_reserva':self.data_reserva,
+            'data_reserva':self.data_reserva.strftime('%d/%m/%Y'),
             'turma_id':self.turma_id
         }

@@ -22,7 +22,7 @@ class Atividade(db.Model):
             'nome_atividade':self.nome_atividade,
             'descricao':self.descricao,
             'peso_porcento':self.peso_porcento,
-            'data_entrega':self.data_entrega,
+            'data_entrega':self.data_entrega.strftime('%d/%m/%Y'),
             'turma_id':self.turma_id,
             'professor_id':self.professor_id
         }
