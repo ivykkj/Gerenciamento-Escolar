@@ -11,7 +11,7 @@ class Nota(db.Model):
     aluno_id = db.Column(db.Integer, nullable=False)
     atividade_id = db.Column(db.Integer, db.ForeignKey('atividades.id'), nullable=False)
 
-    atividade = relationship("Atividade", back_populates="notas")
+    atividades = relationship("Atividade", back_populates="notas")
 
     def to_dict(self):
         return {
